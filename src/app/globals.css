@@ -1,0 +1,359 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-emerald: #10B981;
+  --color-profit: #10B981;
+  --color-loss: #EF4444;
+
+  /* Stock Average Calculator custom tokens */
+  --color-att-gold: var(--att-gold);
+  --color-att-gain: var(--att-gain);
+  --color-att-loss: var(--att-loss);
+}
+
+/* ===================================================
+   LIGHT THEME (default for :root)
+   Clean, neutral backgrounds with emerald as accent only.
+   =================================================== */
+:root {
+  --radius: 0.625rem;
+
+  /* Neutral base — NO green tint on backgrounds/borders/text */
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.13 0.028 261);
+  --card: oklch(1.0 0 0);
+  --card-foreground: oklch(0.13 0.028 261);
+  --popover: oklch(1.0 0 0);
+  --popover-foreground: oklch(0.13 0.028 261);
+
+  /* Brand accent — emerald green, used deliberately */
+  --primary: oklch(0.55 0.17 160);
+  --primary-foreground: oklch(1.0 0 0);
+
+  /* Neutral grays — cool blue-gray for professionalism */
+  --secondary: oklch(0.96 0.005 250);
+  --secondary-foreground: oklch(0.18 0.028 261);
+  --muted: oklch(0.96 0.005 250);
+  --muted-foreground: oklch(0.44 0.02 260);
+  --accent: oklch(0.94 0.01 250);
+  --accent-foreground: oklch(0.13 0.028 261);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.88 0.006 250);
+  --input: oklch(0.88 0.006 250);
+  --ring: oklch(0.55 0.17 160);
+
+  /* Chart palette — diverse, not all green */
+  --chart-1: oklch(0.55 0.17 160);
+  --chart-2: oklch(0.55 0.15 250);
+  --chart-3: oklch(0.65 0.16 45);
+  --chart-4: oklch(0.55 0.18 300);
+  --chart-5: oklch(0.55 0.2 20);
+
+  /* Sidebar — neutral */
+  --sidebar: oklch(0.985 0.002 250);
+  --sidebar-foreground: oklch(0.13 0.028 261);
+  --sidebar-primary: oklch(0.55 0.17 160);
+  --sidebar-primary-foreground: oklch(1.0 0 0);
+  --sidebar-accent: oklch(0.94 0.01 250);
+  --sidebar-accent-foreground: oklch(0.13 0.028 261);
+  --sidebar-border: oklch(0.88 0.006 250);
+  --sidebar-ring: oklch(0.55 0.17 160);
+
+  /* Grid & glow — theme-aware */
+  --grid-line: rgba(0,0,0,0.04);
+  --glow-primary: rgba(16,185,129,0.08);
+
+  /* ATT calculator custom tokens — light */
+  --att-gold: #d97706;
+  --att-gain: #059669;
+  --att-loss: #dc2626;
+  --att-card-alt: #f3f4f6;
+  --att-input-bg: #ffffff;
+  --att-input-placeholder: #94a3b8;
+  --att-cmp-bg: rgba(217,119,6,0.04);
+  --att-cmp-border: rgba(217,119,6,0.2);
+  --att-cmp-text: #d97706;
+  --att-cmp-prefix: rgba(217,119,6,0.5);
+  --att-cmp-focus: rgba(217,119,6,0.12);
+  --att-formula-text: #64748b;
+  --att-badge-gain-bg: rgba(5,150,105,0.1);
+  --att-badge-loss-bg: rgba(220,38,38,0.1);
+  --att-bar-gain-from: #d1fae5;
+  --att-bar-gain-to: #059669;
+  --att-bar-loss-from: #fee2e2;
+  --att-bar-loss-to: #dc2626;
+  --att-chart-grid: rgba(0,0,0,0.06);
+  --att-chart-tick: #64748b;
+  --att-chart-tooltip-bg: #ffffff;
+  --att-chart-tooltip-border: #d1d5db;
+  --att-hero-gradient-from: #059669;
+  --att-hero-gradient-via: #34d399;
+  --att-hero-gradient-to: #d97706;
+  --att-glow-gain: 0 4px 20px rgba(5,150,105,0.12);
+  --att-glow-loss: 0 4px 20px rgba(220,38,38,0.1);
+  --att-card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  --att-card-hover-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* ===================================================
+   DARK THEME
+   =================================================== */
+.dark {
+  --background: oklch(0.12 0.02 260);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0.02 260);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.16 0.02 260);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.7 0.17 160);
+  --primary-foreground: oklch(0.12 0.02 260);
+  --secondary: oklch(0.22 0.02 260);
+  --secondary-foreground: oklch(0.9 0 0);
+  --muted: oklch(0.22 0.02 260);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.22 0.04 260);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.28 0.02 260);
+  --input: oklch(0.28 0.02 260);
+  --ring: oklch(0.7 0.17 160);
+  --chart-1: oklch(0.7 0.17 160);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.828 0.189 84.429);
+  --chart-4: oklch(0.769 0.188 70.08);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.14 0.02 260);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.7 0.17 160);
+  --sidebar-primary-foreground: oklch(0.12 0.02 260);
+  --sidebar-accent: oklch(0.22 0.04 260);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.28 0.02 260);
+  --sidebar-ring: oklch(0.7 0.17 160);
+
+  /* Grid & glow — dark theme keeps green tint for atmosphere */
+  --grid-line: rgba(16,185,129,0.05);
+  --glow-primary: rgba(16,185,129,0.15);
+
+  /* ATT calculator custom tokens — dark */
+  --att-gold: #ffd740;
+  --att-gain: #00e676;
+  --att-loss: #ff5252;
+  --att-card-alt: #111a15;
+  --att-input-bg: #0a0f0c;
+  --att-input-placeholder: #3a5a4a;
+  --att-cmp-bg: rgba(255,215,64,0.05);
+  --att-cmp-border: rgba(255,215,64,0.2);
+  --att-cmp-text: #ffd740;
+  --att-cmp-prefix: rgba(255,215,64,0.6);
+  --att-cmp-focus: rgba(255,215,64,0.12);
+  --att-formula-text: #b0c8ba;
+  --att-badge-gain-bg: rgba(0,230,118,0.1);
+  --att-badge-loss-bg: rgba(255,82,82,0.1);
+  --att-bar-gain-from: #0a2e1a;
+  --att-bar-gain-to: #00e676;
+  --att-bar-loss-from: #2e0a0a;
+  --att-bar-loss-to: #ff5252;
+  --att-chart-grid: rgba(26,46,36,0.5);
+  --att-chart-tick: #6b8a7a;
+  --att-chart-tooltip-bg: #111a15;
+  --att-chart-tooltip-border: #1a2e24;
+  --att-hero-gradient-from: #00e676;
+  --att-hero-gradient-via: #6ee7b7;
+  --att-hero-gradient-to: #ffd740;
+  --att-glow-gain: 0 0 30px rgba(0,230,118,0.08);
+  --att-glow-loss: 0 0 30px rgba(255,82,82,0.08);
+  --att-card-shadow: none;
+  --att-card-hover-shadow: none;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Hide scrollbar for ticker bar horizontal scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(128,128,128,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128,128,128,0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128,128,128,0.35);
+}
+
+/* Animated grid background — theme-aware via CSS variable */
+.hero-grid {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+/* Glow effects — theme-aware */
+.glow-emerald {
+  box-shadow: 0 0 20px var(--glow-primary), 0 0 60px var(--glow-primary);
+}
+
+.glow-emerald-strong {
+  box-shadow: 0 0 30px var(--glow-primary), 0 0 80px var(--glow-primary);
+}
+
+/* Indian number formatting helper */
+.indian-rupee::before {
+  content: '₹';
+}
+
+/* ===================================================
+   ATT Calculator — Stock Average specific styles
+   =================================================== */
+.att-lot-input {
+  background: var(--att-input-bg);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.att-lot-input:focus {
+  border-color: var(--att-gain);
+  box-shadow: 0 0 0 3px var(--att-badge-gain-bg);
+}
+.att-lot-input::placeholder {
+  color: var(--att-input-placeholder);
+}
+
+.att-cmp-input:focus {
+  border-color: var(--att-cmp-text) !important;
+  box-shadow: 0 0 0 3px var(--att-cmp-focus) !important;
+}
+
+.att-result-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.3s;
+  box-shadow: var(--att-card-shadow);
+}
+.att-result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--att-card-hover-shadow);
+}
+.att-result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--att-gain), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.att-result-card:hover::before { opacity: 1; }
+.att-result-card.gain-glow { box-shadow: var(--att-glow-gain); }
+.att-result-card.loss-glow { box-shadow: var(--att-glow-loss); }
+
+.att-formula-block {
+  background: var(--att-input-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--att-gain);
+  border-radius: 0 0.625rem 0.625rem 0;
+  padding: 1rem 1.5rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+  color: var(--att-formula-text);
+}
+
+.att-faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(.22,1,.36,1), padding 0.3s;
+}
+.att-faq-answer.open { max-height: 600px; }
+
+/* Hero gradient text */
+.att-hero-gradient {
+  background: linear-gradient(to right, var(--att-hero-gradient-from), var(--att-hero-gradient-via), var(--att-hero-gradient-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* CMP section */
+.att-cmp-section {
+  background: var(--att-cmp-bg);
+  border-color: var(--att-cmp-border);
+}
+.att-cmp-label {
+  color: var(--att-cmp-text);
+}
+.att-cmp-prefix {
+  color: var(--att-cmp-prefix);
+}
