@@ -18,9 +18,13 @@ import { Footer } from '@/components/footer'
 import { CalculatorModal } from '@/components/calculators/calculator-modal'
 import { TradingJournal } from '@/components/journal/trading-journal'
 import { MindJournal } from '@/components/journal/mind-journal'
-import { ChevronLeft } from 'lucide-react'
 import { FloatingActions } from '@/components/floating-actions'
 import { InstallBanner } from '@/components/install-banner'
+import { SkillTreeLanding } from '@/components/skill-tree/skill-tree-landing'
+import { RealmView } from '@/components/skill-tree/realm-view'
+import { NodeView } from '@/components/skill-tree/node-view'
+import { KnowledgeMap } from '@/components/skill-tree/knowledge-map'
+import { ChevronLeft } from 'lucide-react'
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -40,18 +44,18 @@ function BackButton({ goHome }: { goHome: () => void }) {
 }
 
 export default function Home() {
-  const { currentView, goHome } = useAppStore()
+  const { currentView, goHome, selectedSkillView } = useAppStore()
 
   // Scroll to top on view change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [currentView])
+  }, [currentView, selectedSkillView])
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <MarketTicker />
-      <InstallBanner />
+      {currentView !== 'skill-tree' && <MarketTicker />}
+      {currentView !== 'skill-tree' && <InstallBanner />}
 
       <main className="flex-1">
         <AnimatePresence mode="wait">
@@ -87,6 +91,33 @@ export default function Home() {
             </motion.div>
           )}
 
+          {currentView === 'skill-tree' && (
+            <motion.div key="skill-tree" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }}>
+              <AnimatePresence mode="wait">
+                {selectedSkillView === 'landing' && (
+                  <motion.div key="st-landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <SkillTreeLanding />
+                  </motion.div>
+                )}
+                {selectedSkillView === 'realm' && (
+                  <motion.div key="st-realm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                    <RealmView />
+                  </motion.div>
+                )}
+                {selectedSkillView === 'node' && (
+                  <motion.div key="st-node" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                    <NodeView />
+                  </motion.div>
+                )}
+                {selectedSkillView === 'map' && (
+                  <motion.div key="st-map" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}>
+                    <KnowledgeMap />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
           {currentView === 'home' && (
             <motion.div key="home" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }}>
               <Hero />
@@ -105,8 +136,8 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      <Footer />
-      <FloatingActions />
+      {currentView !== 'skill-tree' && <Footer />}
+      {currentView !== 'skill-tree' && <FloatingActions />}
     </div>
   )
 }

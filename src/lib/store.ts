@@ -2,22 +2,61 @@
 
 import { create } from 'zustand'
 
-export type View = 'home' | 'calculator' | 'journal' | 'mind-journal' | 'demat'
+export type View = 'home' | 'calculator' | 'journal' | 'mind-journal' | 'demat' | 'skill-tree'
+
+export type SkillSubView = 'landing' | 'realm' | 'node' | 'map'
+export type SkillLanguage = 'en' | 'hi' | 'te'
 
 interface AppStore {
   currentView: View
   activeCalculator: string | null
+  // Skill Tree state
+  selectedRealmId: number | null
+  selectedNodeId: string | null
+  selectedSkillView: SkillSubView
+  skillLanguage: SkillLanguage
+  // Actions
   setView: (view: View) => void
   openCalculator: (id: string) => void
   goHome: () => void
+  openSkillTree: () => void
+  openRealm: (realmId: number) => void
+  openNode: (nodeId: string) => void
+  openKnowledgeMap: () => void
+  setSkillLanguage: (lang: SkillLanguage) => void
+  goBackSkillTree: () => void
 }
 
-export const useAppStore = create<AppStore>((set) => ({
+export const useAppStore = create<AppStore>((set, get) => ({
   currentView: 'home',
   activeCalculator: null,
+  selectedRealmId: null,
+  selectedNodeId: null,
+  selectedSkillView: 'landing',
+  skillLanguage: (typeof window !== 'undefined' && localStorage.getItem('skill-language') as SkillLanguage) || 'en',
   setView: (view) => set({ currentView: view, activeCalculator: view === 'calculator' ? null : null }),
   openCalculator: (id) => set({ currentView: 'calculator', activeCalculator: id }),
-  goHome: () => set({ currentView: 'home', activeCalculator: null }),
+  goHome: () => set({ currentView: 'home', activeCalculator: null, selectedSkillView: 'landing', selectedRealmId: null, selectedNodeId: null }),
+  openSkillTree: () => set({ currentView: 'skill-tree', selectedSkillView: 'landing', selectedRealmId: null, selectedNodeId: null }),
+  openRealm: (realmId) => set({ currentView: 'skill-tree', selectedSkillView: 'realm', selectedRealmId: realmId, selectedNodeId: null }),
+  openNode: (nodeId) => set({ currentView: 'skill-tree', selectedSkillView: 'node', selectedNodeId: nodeId }),
+  openKnowledgeMap: () => set({ currentView: 'skill-tree', selectedSkillView: 'map' }),
+  setSkillLanguage: (lang) => {
+    if (typeof window !== 'undefined') localStorage.setItem('skill-language', lang)
+    set({ skillLanguage: lang })
+  },
+  goBackSkillTree: () => {
+    const { selectedSkillView } = get()
+    if (selectedSkillView === 'node') {
+      set({ selectedSkillView: 'realm', selectedNodeId: null })
+    } else if (selectedSkillView === 'realm') {
+      set({ selectedSkillView: 'landing', selectedRealmId: null })
+    } else if (selectedSkillView === 'map') {
+      set({ selectedSkillView: 'landing' })
+    } else {
+      set({ currentView: 'home', selectedSkillView: 'landing' })
+    }
+  },
 }))
 
 export const CALCULATORS = [

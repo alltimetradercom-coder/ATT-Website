@@ -22,6 +22,7 @@ import {
   X,
   Sun,
   Moon,
+  Sparkles,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
@@ -39,7 +40,7 @@ function ChromeIcon({ className }: { className?: string }) {
 }
 
 export function Navbar() {
-  const { setView, openCalculator, goHome, currentView } = useAppStore()
+  const { setView, openCalculator, goHome, currentView, openSkillTree } = useAppStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { setTheme, resolvedTheme } = useTheme()
   const pathname = usePathname()
@@ -59,8 +60,15 @@ export function Navbar() {
     }
   }
 
-  const handleSetView = (view: 'home' | 'calculator' | 'journal' | 'mind-journal' | 'demat') => {
+  const handleSetView = (view: 'home' | 'calculator' | 'journal' | 'mind-journal' | 'demat' | 'skill-tree') => {
     setView(view)
+    if (pathname !== '/') {
+      router.push('/')
+    }
+  }
+
+  const handleOpenSkillTree = () => {
+    openSkillTree()
     if (pathname !== '/') {
       router.push('/')
     }
@@ -79,7 +87,6 @@ export function Navbar() {
           </span>
         </button>
 
-        {/* Desktop Nav */}
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
           {/* Calculators Dropdown */}
@@ -185,8 +192,16 @@ export function Navbar() {
           </Button>
         </nav>
 
-        {/* Right side */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Right side — Skill Tree button + Theme toggle */}
+        <div className="hidden md:flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={handleOpenSkillTree}
+            className="group gap-1.5 h-9 rounded-xl font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-4 transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <Sparkles className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <span className="text-xs">Skill Tree</span>
+          </Button>
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             className="flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 bg-card/50 hover:bg-accent hover:border-primary/30 transition-all duration-200 text-muted-foreground hover:text-primary hover:scale-105 cursor-pointer"
@@ -195,13 +210,18 @@ export function Navbar() {
             <Sun className="h-4 w-4 dark:hidden" />
             <Moon className="h-4 w-4 hidden dark:block" />
           </button>
-          <div className="flex h-9 items-center rounded-xl bg-primary/15 px-3 text-xs font-bold text-primary border border-primary/25 hover:bg-primary/20 transition-colors">
-            ATT
-          </div>
         </div>
 
-        {/* Mobile menu & mobile theme toggle */}
+        {/* Mobile menu — Skill Tree button + Theme toggle + Hamburger */}
         <div className="flex md:hidden items-center gap-1.5">
+          <Button
+            size="sm"
+            onClick={handleOpenSkillTree}
+            className="group gap-1 h-8 rounded-lg font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-2.5 transition-all duration-200 shadow-sm"
+          >
+            <Sparkles className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px]">Skill Tree</span>
+          </Button>
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             className="flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 bg-card/40 text-muted-foreground hover:text-primary transition-all duration-200 cursor-pointer"
@@ -222,6 +242,18 @@ export function Navbar() {
               <span className="font-bold">All<span className="text-primary">Time</span>Trader</span>
             </div>
             <div className="overflow-y-auto max-h-[calc(100vh-4rem)] p-4 space-y-2">
+              {/* Skill Tree - Prominent */}
+              <div className="border border-primary/20 rounded-xl bg-primary/5 p-3 mb-3">
+                <button
+                  onClick={() => { handleOpenSkillTree(); setMobileOpen(false) }}
+                  className="flex w-full items-center gap-2 text-sm font-bold text-primary"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Skill Tree
+                </button>
+                <p className="text-[10px] text-muted-foreground mt-1 ml-6">270 lessons • 13 realms • gamified</p>
+              </div>
+
               <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Calculators</div>
               {CALCULATORS.map((calc) => (
                 <button

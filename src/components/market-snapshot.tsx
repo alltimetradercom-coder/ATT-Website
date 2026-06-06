@@ -17,32 +17,14 @@ function TradingViewWidget({ symbol, title, icon: Icon, color }: { symbol: strin
   useEffect(() => {
     if (!containerRef.current) return
 
-    // Clear any previous widget
-    containerRef.current.innerHTML = ''
-
-    // Outer wrapper div (required by TradingView)
-    const wrapper = document.createElement('div')
-    wrapper.className = 'tradingview-widget-container'
-    wrapper.style.height = '220px'
-    wrapper.style.width = '100%'
-
-    // Inner widget target div
-    const inner = document.createElement('div')
-    inner.className = 'tradingview-widget-container__widget'
-    inner.style.height = '220px'
-    inner.style.width = '100%'
-    wrapper.appendChild(inner)
-
-    // Inline config script — MUST come before the embed script
-    const configScript = document.createElement('script')
-    configScript.type = 'text/javascript'
-    configScript.text = JSON.stringify({
+    const theme = resolvedTheme === 'dark' ? 'dark' : 'light'
+    const config = JSON.stringify({
       symbols: [[symbol, symbol + '|1D']],
       chartOnly: false,
       width: '100%',
       height: 220,
       locale: 'in',
-      colorTheme: resolvedTheme === 'dark' ? 'dark' : 'light',
+      colorTheme: theme,
       isTransparent: true,
       autosize: true,
       showVolume: false,
@@ -62,15 +44,24 @@ function TradingViewWidget({ symbol, title, icon: Icon, color }: { symbol: strin
       lineType: 0,
       dateRanges: ['1d|1', '1m|30', '3m|60', '12m|1D', '60m|1W', 'all|1M'],
     })
-    wrapper.appendChild(configScript)
 
-    // External embed script
-    const embedScript = document.createElement('script')
-    embedScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
-    embedScript.async = true
-    wrapper.appendChild(embedScript)
+    // 1) Use innerHTML for the wrapper + config (scripts inside innerHTML don't execute,
+    //    which is exactly what we want for the config — it just needs to be in the DOM)
+    containerRef.current.innerHTML = `
+      <div class="tradingview-widget-container" style="height:220px;width:100%">
+        <div class="tradingview-widget-container__widget" style="height:220px;width:100%"></div>
+        <script type="application/json">${config}</script>
+      </div>
+    `
 
-    containerRef.current.appendChild(wrapper)
+    // 2) Programmatically append the embed script so it actually loads & executes
+    const widgetContainer = containerRef.current.querySelector('.tradingview-widget-container')
+    if (widgetContainer) {
+      const embedScript = document.createElement('script')
+      embedScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
+      embedScript.async = true
+      widgetContainer.appendChild(embedScript)
+    }
   }, [symbol, resolvedTheme])
 
   return (
@@ -81,7 +72,6 @@ function TradingViewWidget({ symbol, title, icon: Icon, color }: { symbol: strin
         <span className="text-sm font-semibold">{title}</span>
         <span className="text-xs text-muted-foreground ml-auto">NSE</span>
       </div>
-      {/* containerRef handles full widget injection — no React children inside */}
       <div className="min-h-[220px]" ref={containerRef} />
     </div>
   )

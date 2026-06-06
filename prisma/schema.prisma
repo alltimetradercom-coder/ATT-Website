@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ATT Skill Tree — Complete Database Schema
+// 7 Core Tables + Realm table + supporting models
 
 generator client {
   provider = "prisma-client-js"
@@ -13,12 +10,313 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// REALM — The 13 major sections of the Skill Tree
+// ============================================================
+model Realm {
+  id          Int      @id @default(autoincrement())
+  realmNumber Int      @unique
+  slug        String   @unique
+  title       String
+  titleHi     String?  @map("title_hi")
+  titleTe     String?  @map("title_te")
+  subtitle    String
+  subtitleHi  String?  @map("subtitle_hi")
+  subtitleTe  String?  @map("subtitle_te")
+  description String
+  descriptionHi String? @map("description_hi")
+  descriptionTe String? @map("description_te")
+  icon        String   // emoji or icon name
+  spirit      String   // e.g. "Beginner", "Core Skill", "Boss Fight"
+  color       String   // hex color for the realm
+  bossName    String?  @map("boss_name")
+  bossNameHi  String?  @map("boss_name_hi")
+  bossNameTe  String?  @map("boss_name_te")
+  badgeEmoji  String   @map("badge_emoji")
+  badgeTitle  String   @map("badge_title")
+  badgeTitleHi String? @map("badge_title_hi")
+  badgeTitleTe String? @map("badge_title_te")
+  sortOrder   Int      @default(0) @map("sort_order")
+  nodes       Node[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("realms")
+}
+
+// ============================================================
+// NODE — Every lesson/glossary/tool/case study in the Skill Tree
+// ============================================================
+model Node {
+  id              Int      @id @default(autoincrement())
+  nodeId          String   @unique @map("node_id")   // e.g. "R1-N1.1"
+  title           String
+  titleHi         String?  @map("title_hi")
+  titleTe         String?  @map("title_te")
+  slug            String   @unique
+  realmId         Int      @map("realm_id")
+  subRealm        String?  @map("sub_realm")
+  subRealmHi      String?  @map("sub_realm_hi")
+  subRealmTe      String?  @map("sub_realm_te")
+  contentType     String   @default("Lesson") @map("content_type")  // Lesson, Glossary, Quiz, Tool, Checklist, PDF, JournalTemplate, CaseStudy, VideoScript, Infographic, MindNote, Certification, StoryChapter, PatchNote
+  difficulty      String   @default("Beginner")  // Beginner, Intermediate, Advanced
+
+  // Content fields (populated during content generation phase)
+  content         String?    // Full lesson content in Markdown
+  contentHi       String?  @map("content_hi") 
+  contentTe       String?  @map("content_te") 
+  tldr            String?    // 3-5 bullet TL;DR
+  tldrHi          String?  @map("tldr_hi") 
+  tldrTe          String?  @map("tldr_te") 
+  cheatsheet      String?    // 5-bullet quick revision
+  cheatsheetHi    String?  @map("cheatsheet_hi") 
+  cheatsheetTe    String?  @map("cheatsheet_te") 
+  mindNote        String?  @map("mind_note")  // One-sentence printable wisdom
+  mindNoteHi      String?  @map("mind_note_hi")
+  mindNoteTe      String?  @map("mind_note_te")
+  keyTakeaways    String?  @map("key_takeaways")   // JSON array of strings
+  traderTips      String?  @map("trader_tips")     // JSON array of strings
+  importantNotes  String?  @map("important_notes")  // JSON array of strings
+
+  // SEO
+  seoTitle        String?  @map("seo_title")
+  seoDescription  String?  @map("seo_description")
+  heroImagePrompt String?  @map("hero_image_prompt")
+  searchIntent    String?  @map("search_intent")  // Learn, Compare, Calculate, etc.
+
+  // Gamification
+  xp              Int      @default(100)
+  badge           String?  // Badge name for completing this node
+  badgeHi         String?  @map("badge_hi")
+  badgeTe         String?  @map("badge_te")
+
+  // Story Mode
+  storyChapter    String?  @map("story_chapter") 
+  bossBattle      String?  @map("boss_battle")
+  lore            String?  
+
+  // AI Mentor metadata
+  beforeKnowledge String?  @map("before_knowledge")   // JSON array
+  afterKnowledge  String?  @map("after_knowledge")    // JSON array
+  misconceptions  String?    // JSON array
+  suggestedNext   String?  @map("suggested_next")
+
+  // Marketplace opportunities
+  printablePdf    Boolean  @default(false) @map("printable_pdf")
+  journalTemplate Boolean  @default(false) @map("journal_template")
+  notionTemplate  Boolean  @default(false) @map("notion_template")
+  excelTemplate   Boolean  @default(false) @map("excel_template")
+  chromeExtension Boolean  @default(false) @map("chrome_extension")
+  premiumPack     Boolean  @default(false) @map("premium_pack")
+
+  // Monetization
+  affiliateEnabled  Boolean  @default(true) @map("affiliate_enabled")
+  adsenseEnabled    Boolean  @default(true) @map("adsense_enabled")
+
+  // Certification
+  certificationPath  String?  @map("certification_path") // JSON array: ["Bronze", "Silver"]
+
+  // Video placeholder
+  videoUrl        String?  @map("video_url")
+
+  // Versioning
+  status          String   @default("draft")  // draft, published, archived
+  version         String   @default("1.0")
+  lastUpdated     String?  @map("last_updated")
+  whatsNew        String?  @map("whats_new")   // JSON array
+
+  // Relations
+  realm           Realm    @relation(fields: [realmId], references: [id])
+  edgesFrom       Edge[]   @relation("FromNode")
+  edgesTo         Edge[]   @relation("ToNode")
+  glossaryTerms   GlossaryNode[]
+  quizzes         QuizBank[]
+  progress        UserProgress[]
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([realmId])
+  @@index([slug])
+  @@index([contentType])
+  @@index([difficulty])
+  @@index([status])
+  @@map("nodes")
+}
+
+// ============================================================
+// EDGE — Connections between nodes (Knowledge Graph)
+// ============================================================
+model Edge {
+  id           Int    @id @default(autoincrement())
+  edgeId       String @unique @map("edge_id")  // e.g. "E-R1-N1-R2-N1"
+  fromNodeId   Int    @map("from_node_id")
+  toNodeId     Int    @map("to_node_id")
+  relationship String // prerequisite, leads_to, related_to, used_in, commonly_confused_with, cross_realm
+  strength     Int    @default(1)
+  label        String?
+
+  fromNode     Node   @relation("FromNode", fields: [fromNodeId], references: [id])
+  toNode       Node   @relation("ToNode", fields: [toNodeId], references: [id])
+
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@index([relationship])
+  @@map("edges")
+}
+
+// ============================================================
+// GLOSSARY — Trading term definitions
+// ============================================================
+model Glossary {
+  id                  Int    @id @default(autoincrement())
+  termId              String @unique @map("term_id")  // e.g. "G-delta"
+  term                String
+  termHi              String? @map("term_hi")
+  termTe              String? @map("term_te")
+  simpleDefinition    String  @map("simple_definition") 
+  simpleDefinitionHi  String? @map("simple_definition_hi") 
+  simpleDefinitionTe  String? @map("simple_definition_te") 
+  professionalDefinition String? @map("professional_definition") 
+  formula             String? 
+  commonMistake       String? @map("common_mistake") 
+  commonMistakeHi     String? @map("common_mistake_hi") 
+  commonMistakeTe     String? @map("common_mistake_te") 
+  realExample         String? @map("real_example") 
+  realExampleHi       String? @map("real_example_hi") 
+  realExampleTe       String? @map("real_example_te") 
+  relatedTerms        String? @map("related_terms")   // JSON array of term IDs
+  faq                 String?   // JSON array of {q, a} objects
+  searchIntent        String? @map("search_intent")
+
+  nodes               GlossaryNode[]
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("glossary")
+}
+
+// Junction table for Glossary ↔ Node many-to-many
+model GlossaryNode {
+  glossaryId Int @map("glossary_id")
+  nodeId     Int @map("node_id")
+
+  glossary   Glossary @relation(fields: [glossaryId], references: [id])
+  node       Node     @relation(fields: [nodeId], references: [id])
+
+  @@id([glossaryId, nodeId])
+  @@map("glossary_nodes")
+}
+
+// ============================================================
+// QUIZ_BANK — Questions for each node
+// ============================================================
+model QuizBank {
+  id          Int    @id @default(autoincrement())
+  quizId      String @unique @map("quiz_id")  // e.g. "Q-R4-N5-01"
+  nodeId      Int    @map("node_id")
+  type        String @default("mcq")  // mcq, true_false, fill_blank, scenario
+  question    String 
+  questionHi  String? @map("question_hi") 
+  questionTe  String? @map("question_te") 
+  options     String   // JSON array of strings
+  optionsHi   String? @map("options_hi") 
+  optionsTe   String? @map("options_te") 
+  answer      String
+  answerHi    String? @map("answer_hi")
+  answerTe    String? @map("answer_te")
+  explanation String? 
+  explanationHi String? @map("explanation_hi") 
+  explanationTe String? @map("explanation_te") 
+  difficulty  String @default("Beginner")
+  xp          Int    @default(10)
+  hint        String?
+  hintHi      String? @map("hint_hi")
+  hintTe      String? @map("hint_te")
+  bossBattle  Boolean @default(false) @map("boss_battle")
+
+  node        Node   @relation(fields: [nodeId], references: [id])
+
+  @@index([nodeId])
+  @@index([bossBattle])
+  @@map("quiz_bank")
+}
+
+// ============================================================
+// TOOL — Calculators, checklists, labs
+// ============================================================
+model Tool {
+  id            Int    @id @default(autoincrement())
+  toolId        String @unique @map("tool_id")  // e.g. "T-options-calculator"
+  title         String
+  titleHi       String? @map("title_hi")
+  titleTe       String? @map("title_te")
+  description   String 
+  descriptionHi String? @map("description_hi") 
+  descriptionTe String? @map("description_te") 
+  type          String @default("calculator")  // calculator, checklist, lab, journal_template, pdf, extension
+  slug          String @unique
+  route         String?  // e.g. "/calculators/stock-average" for existing tools
+  isLive        Boolean @default(false) @map("is_live")
+  sortOrder     Int    @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("tools")
+}
+
+// ============================================================
+// USER_PROGRESS — Track user learning progress
+// ============================================================
+model UserProgress {
+  id                Int    @id @default(autoincrement())
+  userId            String @map("user_id")  // Will be replaced with auth user ID later
+  nodeId            Int    @map("node_id")
+  status            String @default("locked")  // locked, available, in_progress, completed
+  readPercent       Int    @default(0) @map("read_percent")
+  quizScore         Int    @default(0) @map("quiz_score")
+  quizBestScore     Int    @default(0) @map("quiz_best_score")
+  challengeCompleted Boolean @default(false) @map("challenge_completed")
+  reflectionAdded   Boolean @default(false) @map("reflection_added")
+  toolUsed          Boolean @default(false) @map("tool_used")
+  xpEarned          Int    @default(0) @map("xp_earned")
+  completedAt       DateTime? @map("completed_at")
+  // Spaced repetition
+  nextReview        DateTime? @map("next_review")
+  intervalDays      Int    @default(1) @map("interval_days")
+  easeFactor        Float  @default(2.5) @map("ease_factor")
+
+  node              Node   @relation(fields: [nodeId], references: [id])
+
+  @@unique([userId, nodeId])
+  @@index([userId])
+  @@index([status])
+  @@map("user_progress")
+}
+
+// ============================================================
+// CERTIFICATE — Bronze/Silver/Gold/Elite achievements
+// ============================================================
+model Certificate {
+  id            Int      @id @default(autoincrement())
+  userId        String   @map("user_id")
+  level         String   // Bronze, Silver, Gold, Elite
+  realmIds      String   @map("realm_ids") // JSON array of completed realm IDs
+  issuedAt      DateTime @default(now()) @map("issued_at")
+  certificateId String   @unique @map("certificate_id") // e.g. "ATT-BRONZE-2026-001"
+
+  @@index([userId])
+  @@index([level])
+  @@map("certificates")
+}
+
+// Keep existing models for compatibility
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 }
 
 model Post {
@@ -26,7 +324,7 @@ model Post {
   title     String
   content   String?
   published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 }
