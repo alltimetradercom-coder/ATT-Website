@@ -64,9 +64,6 @@ export function CalculatorModal() {
   const calcInfo = CALCULATORS.find((c) => c.id === activeCalculator)
   const CalcComponent = activeCalculator ? CALCULATOR_COMPONENTS[activeCalculator] : null
 
-  // Stock Average, SIP, and Brokerage get a full-width immersive layout
-  const isFullWidth = activeCalculator === 'stock-average' || activeCalculator === 'sip' || activeCalculator === 'brokerage'
-
   if (!activeCalculator || !CalcComponent || !calcInfo) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -79,35 +76,10 @@ export function CalculatorModal() {
     )
   }
 
-  // Full-width layout for stock-average
-  if (isFullWidth) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-        {/* Top bar with breadcrumb + theme toggle */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button onClick={goHome} className="hover:text-primary transition-colors flex items-center gap-1">
-              <ChevronLeft className="h-4 w-4" />
-              Home
-            </button>
-            <span>/</span>
-            <span>Calculators</span>
-            <span>/</span>
-            <span className="text-foreground">{calcInfo.name}</span>
-          </div>
-          <ThemeToggle />
-        </div>
-
-        {/* Calculator Component */}
-        <CalcComponent />
-      </div>
-    )
-  }
-
-  // Standard layout for other calculators
+  // All calculators get a full-width immersive layout
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
-      {/* Breadcrumb */}
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      {/* Top bar with breadcrumb + theme toggle */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <button onClick={goHome} className="hover:text-primary transition-colors flex items-center gap-1">
@@ -120,14 +92,6 @@ export function CalculatorModal() {
           <span className="text-foreground">{calcInfo.name}</span>
         </div>
         <ThemeToggle />
-      </div>
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          {calcInfo.name}
-        </h1>
-        <p className="mt-1 text-muted-foreground">{calcInfo.description}</p>
       </div>
 
       {/* Calculator Component */}

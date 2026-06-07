@@ -4,7 +4,7 @@ import { create } from 'zustand'
 
 export type View = 'home' | 'calculator' | 'journal' | 'mind-journal' | 'demat' | 'skill-tree'
 
-export type SkillSubView = 'landing' | 'realm' | 'node' | 'map'
+export type SkillSubView = 'landing' | 'realm' | 'node' | 'map' | 'certificate' | 'glossary'
 export type SkillLanguage = 'en' | 'hi' | 'te'
 
 interface AppStore {
@@ -23,6 +23,8 @@ interface AppStore {
   openRealm: (realmId: number) => void
   openNode: (nodeId: string) => void
   openKnowledgeMap: () => void
+  openGlossary: () => void
+  openCertificate: () => void
   setSkillLanguage: (lang: SkillLanguage) => void
   goBackSkillTree: () => void
 }
@@ -41,6 +43,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   openRealm: (realmId) => set({ currentView: 'skill-tree', selectedSkillView: 'realm', selectedRealmId: realmId, selectedNodeId: null }),
   openNode: (nodeId) => set({ currentView: 'skill-tree', selectedSkillView: 'node', selectedNodeId: nodeId }),
   openKnowledgeMap: () => set({ currentView: 'skill-tree', selectedSkillView: 'map' }),
+  openGlossary: () => set({ currentView: 'skill-tree', selectedSkillView: 'glossary' }),
+  openCertificate: () => set({ currentView: 'skill-tree', selectedSkillView: 'certificate' }),
   setSkillLanguage: (lang) => {
     if (typeof window !== 'undefined') localStorage.setItem('skill-language', lang)
     set({ skillLanguage: lang })
@@ -52,6 +56,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
     } else if (selectedSkillView === 'realm') {
       set({ selectedSkillView: 'landing', selectedRealmId: null })
     } else if (selectedSkillView === 'map') {
+      set({ selectedSkillView: 'landing' })
+    } else if (selectedSkillView === 'glossary') {
+      set({ selectedSkillView: 'landing' })
+    } else if (selectedSkillView === 'certificate') {
       set({ selectedSkillView: 'landing' })
     } else {
       set({ currentView: 'home', selectedSkillView: 'landing' })

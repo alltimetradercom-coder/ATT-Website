@@ -1,0 +1,23 @@
+=== Translation Gen V2 - hindi / nodes - 2026-06-07T13:12:01.164Z ===
+[2026-06-07T13:12:01.166Z] ZAI SDK initialized
+[2026-06-07T13:12:01.166Z] ZAI SDK initialized
+[2026-06-07T13:12:01.179Z] Found 270 nodes needing hindi translation
+[2026-06-07T13:12:01.179Z] Found 270 nodes needing hindi translation
+[2026-06-07T13:12:01.180Z] [1/270] HINDI NODE: R1-N1
+[2026-06-07T13:12:01.180Z] [1/270] HINDI NODE: R1-N1
+Failed to make API request: Error: API request failed with status 429: {"error":"Too many requests, please try again later"}
+    at ZAI.createChatCompletion (file:///home/z/my-project/node_modules/z-ai-web-dev-sdk/dist/index.js:100:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async safeApiCall (file:///home/z/my-project/scripts/generate-translations-v2.mjs:39:22)
+    at async translateNode (file:///home/z/my-project/scripts/generate-translations-v2.mjs:86:22)
+    at async main (file:///home/z/my-project/scripts/generate-translations-v2.mjs:192:9)
+[2026-06-07T13:12:01.241Z]   Rate limited, waiting 30s (attempt 1)...
+[2026-06-07T13:12:01.241Z]   Rate limited, waiting 30s (attempt 1)...
+Failed to make API request: Error: API request failed with status 429: {"error":"Too many requests, please try again later"}
+    at ZAI.createChatCompletion (file:///home/z/my-project/node_modules/z-ai-web-dev-sdk/dist/index.js:100:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async safeApiCall (file:///home/z/my-project/scripts/generate-translations-v2.mjs:39:22)
+    at async translateNode (file:///home/z/my-project/scripts/generate-translations-v2.mjs:86:22)
+    at async main (file:///home/z/my-project/scripts/generate-translations-v2.mjs:192:9)
+[2026-06-07T13:12:31.275Z]   Rate limited, waiting 60s (attempt 2)...
+[2026-06-07T13:12:31.275Z]   Rate limited, waiting 60s (attempt 2)...

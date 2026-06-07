@@ -13,56 +13,78 @@ const MARKETS = [
 function TradingViewWidget({ symbol, title, icon: Icon, color }: { symbol: string; title: string; icon: React.ComponentType<{ className?: string }>; color: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { resolvedTheme } = useTheme()
+  const isMounted = useRef(false)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    isMounted.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!containerRef.current || !isMounted.current) return
+
+    // Clean up previous widget
+    containerRef.current.innerHTML = ''
 
     const theme = resolvedTheme === 'dark' ? 'dark' : 'light'
-    const config = JSON.stringify({
-      symbols: [[symbol, symbol + '|1D']],
-      chartOnly: false,
-      width: '100%',
-      height: 220,
-      locale: 'in',
-      colorTheme: theme,
-      isTransparent: true,
-      autosize: true,
-      showVolume: false,
-      showMA: false,
-      hideDateRanges: false,
-      hideMarketStatus: false,
-      hideSymbolLogo: false,
-      scalePosition: 'right',
-      scaleMode: 'Normal',
-      fontFamily: 'inherit',
-      fontSize: '10',
-      noTimeScale: false,
-      valuesTracking: '1',
-      changeMode: 'price-and-percent',
-      chartType: 'area',
-      lineWidth: 2,
-      lineType: 0,
-      dateRanges: ['1d|1', '1m|30', '3m|60', '12m|1D', '60m|1W', 'all|1M'],
-    })
 
-    // 1) Use innerHTML for the wrapper + config (scripts inside innerHTML don't execute,
-    //    which is exactly what we want for the config — it just needs to be in the DOM)
-    containerRef.current.innerHTML = `
+    // Use the exact HTML structure TradingView generates
+    // This is the most reliable approach for React apps
+    const widgetHTML = `
       <div class="tradingview-widget-container" style="height:220px;width:100%">
         <div class="tradingview-widget-container__widget" style="height:220px;width:100%"></div>
-        <script type="application/json">${config}</script>
+        <script type="application/json" class="tradingview-widget-options">
+        ${JSON.stringify({
+          symbols: [[title + '|' + symbol]],
+          chartOnly: false,
+          width: '100%',
+          height: 220,
+          locale: 'en',
+          colorTheme: theme,
+          isTransparent: true,
+          autosize: true,
+          showVolume: false,
+          showMA: false,
+          hideDateRanges: false,
+          hideMarketStatus: false,
+          hideSymbolLogo: false,
+          scalePosition: 'right',
+          scaleMode: 'Normal',
+          fontFamily: 'inherit',
+          fontSize: '10',
+          noTimeScale: false,
+          valuesTracking: '1',
+          changeMode: 'price-and-percent',
+          chartType: 'area',
+          lineWidth: 2,
+          lineType: 0,
+          dateRanges: ['1d|1', '1m|30', '3m|60', '12m|1D', '60m|1W', 'all|1M'],
+        })}
+        </script>
       </div>
     `
 
-    // 2) Programmatically append the embed script so it actually loads & executes
-    const widgetContainer = containerRef.current.querySelector('.tradingview-widget-container')
-    if (widgetContainer) {
-      const embedScript = document.createElement('script')
-      embedScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
-      embedScript.async = true
-      widgetContainer.appendChild(embedScript)
+    containerRef.current.innerHTML = widgetHTML
+
+    // Load the TradingView embed script after a small delay to ensure
+    // the DOM is fully committed before the script searches for the config
+    const timer = setTimeout(() => {
+      if (!containerRef.current) return
+      const scriptEl = document.createElement('script')
+      scriptEl.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
+      scriptEl.async = true
+      const container = containerRef.current.querySelector('.tradingview-widget-container')
+      if (container) {
+        container.appendChild(scriptEl)
+      }
+    }, 100)
+
+    return () => {
+      clearTimeout(timer)
+      if (containerRef.current) {
+        containerRef.current.innerHTML = ''
+      }
     }
-  }, [symbol, resolvedTheme])
+  }, [symbol, title, resolvedTheme])
 
   return (
     <div className="rounded-xl border border-border/50 bg-card overflow-hidden">

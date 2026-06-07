@@ -1,0 +1,7 @@
+[2026-06-07T13:05:12.771Z] === Glossary Seeder Starting ===
+[2026-06-07T13:05:12.773Z] ZAI SDK initialized
+[2026-06-07T13:05:12.781Z] Existing glossary terms: 8
+[2026-06-07T13:05:12.783Z] 
+Processing Realm 1 (Genesis): 15 terms
+[2026-06-07T13:05:12.784Z]   Generating entries for: Stock Market, NSE, BSE, SEBI, Demat Account
+[2026-06-07T13:05:12.848Z]   Batch error: API request failed with status 429: {"error":"Too many requests, please try agai

@@ -1,0 +1,17 @@
+=== ATT Content Generator V2 - 2026-06-07T13:00:59.639Z ===
+[2026-06-07T13:00:59.640Z] ZAI SDK initialized
+[2026-06-07T13:00:59.650Z] Found 0 nodes needing content
+[2026-06-07T13:00:59.650Z] 
+--- PHASE 1: Content Generation ---
+[2026-06-07T13:00:59.650Z] 
+Phase 1 Complete: 0 success, 0 failed
+[2026-06-07T13:00:59.650Z] 
+--- PHASE 2: Quiz Generation ---
+[2026-06-07T13:00:59.709Z] Found 0 nodes needing quizzes
+[2026-06-07T13:00:59.709Z] 
+Phase 2 Complete: 0 success, 0 failed, 0 total questions
+[2026-06-07T13:00:59.709Z] 
+=== GENERATION COMPLETE ===
+[2026-06-07T13:00:59.709Z] Content: 0 generated, 0 failed
+[2026-06-07T13:00:59.709Z] Quizzes: 0 generated, 0 failed, 0 questions total
+[2026-06-07T13:00:59.710Z] Log saved to: /home/z/my-project/download/content-gen-log.txt

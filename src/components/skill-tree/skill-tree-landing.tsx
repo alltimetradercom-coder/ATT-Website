@@ -1,19 +1,38 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAppStore } from '@/lib/store'
 import { LanguageSwitcher, getLocalizedText } from './language-switcher'
+import { SkillTreeSearch } from './skill-tree-search'
 import { REALMS, TOTAL_NODES, TOTAL_XP, type RealmData } from '@/data/skill-tree-realms'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Network, Sparkles, Trophy, Zap, ChevronRight, Star, Map } from 'lucide-react'
+import { Network, Sparkles, Trophy, Zap, ChevronRight, Star, MapIcon, CheckCircle2, BookOpen, Award } from 'lucide-react'
 
 interface LandingData {
   realms: RealmData[]
   totalNodes: number
   totalXp: number
+}
+
+interface GlobalProgress {
+  totalXpEarned: number
+  completedNodes: number
+  availableNodes: number
+  inProgressNodes: number
+  totalNodes: number
+}
+
+interface RealmProgress {
+  realmId: number
+  realmNumber: number
+  realmTitle: string
+  totalNodes: number
+  completedNodes: number
+  xpEarned: number
 }
 
 const containerVariants = {
@@ -49,11 +68,43 @@ function getSpiritBadge(spirit: string) {
 }
 
 export function SkillTreeLanding() {
-  const { openRealm, openKnowledgeMap, skillLanguage } = useAppStore()
+  const { openRealm, openKnowledgeMap, openGlossary, openCertificate, skillLanguage } = useAppStore()
   const data: LandingData = { realms: REALMS, totalNodes: TOTAL_NODES, totalXp: TOTAL_XP }
 
+  // Fetch global progress
+  const [globalProgress, setGlobalProgress] = useState<GlobalProgress | null>(null)
+  const [realmProgressMap, setRealmProgressMap] = useState<Map<number, RealmProgress>>(new Map())
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/skill-tree/progress')
+      .then((res) => res.json())
+      .then((d) => {
+        if (cancelled) return
+        if (d.stats) {
+          setGlobalProgress(d.stats)
+        }
+        // Build realm progress map
+        if (d.realmProgress && Array.isArray(d.realmProgress)) {
+          const map = new Map<number, RealmProgress>()
+          for (const rp of d.realmProgress) {
+            map.set(rp.realmId, rp)
+          }
+          setRealmProgressMap(map)
+        }
+      })
+      .catch(console.error)
+    return () => { cancelled = true }
+  }, [])
+
+  const totalXpEarned = globalProgress?.totalXpEarned || 0
+  const totalNodesCompleted = globalProgress?.completedNodes || 0
+  const overallProgressPercent = globalProgress?.totalNodes
+    ? (totalNodesCompleted / globalProgress.totalNodes) * 100
+    : 0
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Animated background */}
@@ -103,6 +154,16 @@ export function SkillTreeLanding() {
               <span className="text-primary font-semibold">Legendary Trader</span>
             </motion.p>
 
+            {/* Search */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="w-full sm:max-w-md mt-6"
+            >
+              <SkillTreeSearch />
+            </motion.div>
+
             {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -127,6 +188,24 @@ export function SkillTreeLanding() {
                 <Network className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 Knowledge Map
               </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={openCertificate}
+                className="group gap-2 text-base font-bold rounded-xl h-12 px-6"
+              >
+                <Award className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                Certificates
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={openGlossary}
+                className="group gap-2 text-base font-bold rounded-xl h-12 px-6"
+              >
+                <BookOpen className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                Glossary
+              </Button>
             </motion.div>
 
             {/* Stats Row */}
@@ -137,9 +216,9 @@ export function SkillTreeLanding() {
               className="mt-12 grid grid-cols-3 gap-6 sm:gap-12"
             >
               {[
-                { label: 'Total Nodes', value: data.totalNodes, icon: Star },
-                { label: 'Total XP', value: data.totalXp.toLocaleString(), icon: Trophy },
-                { label: 'Realms', value: data.realms.length, icon: Map },
+                { label: 'Nodes Completed', value: `${totalNodesCompleted}/${data.totalNodes}`, icon: Star },
+                { label: 'XP Earned', value: totalXpEarned.toLocaleString(), icon: Trophy },
+                { label: 'Realms', value: data.realms.length, icon: MapIcon },
               ].map((stat) => (
                 <div key={stat.label} className="flex flex-col items-center gap-1">
                   <stat.icon className="h-5 w-5 text-primary mb-1" />
@@ -148,6 +227,21 @@ export function SkillTreeLanding() {
                 </div>
               ))}
             </motion.div>
+
+            {/* Overall progress bar */}
+            {totalNodesCompleted > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-6 w-full max-w-md"
+              >
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-muted-foreground">Overall Progress</span>
+                  <span className="font-semibold text-primary">{Math.round(overallProgressPercent)}%</span>
+                </div>
+                <Progress value={overallProgressPercent} className="h-2" />
+              </motion.div>
+            )}
           </div>
         </div>
       </section>
@@ -172,6 +266,10 @@ export function SkillTreeLanding() {
             const spiritBadge = getSpiritBadge(realm.spirit)
             const title = getLocalizedText(realm, 'title', skillLanguage)
             const subtitle = getLocalizedText(realm, 'subtitle', skillLanguage)
+            const rp = realmProgressMap.get(realm.id)
+            const completedInRealm = rp?.completedNodes || 0
+            const realmXpEarned = rp?.xpEarned || 0
+            const realmProgressPercent = rp?.totalNodes ? (completedInRealm / rp.totalNodes) * 100 : 0
 
             return (
               <motion.div key={realm.id} variants={itemVariants}>
@@ -209,15 +307,32 @@ export function SkillTreeLanding() {
                         <span className="text-xs text-muted-foreground">
                           {realm.nodeCount} {realm.nodeCount === 1 ? 'node' : 'nodes'}
                         </span>
+                        {completedInRealm > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3 w-3" /> {completedInRealm} done
+                          </span>
+                        )}
+                        {completedInRealm === 0 && realm.nodeCount > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Content Ready
+                          </span>
+                        )}
                       </div>
 
-                      {/* Progress bar placeholder (0% completed for now) */}
+                      {/* Progress bar */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">Progress</span>
-                          <span className="font-semibold text-muted-foreground">0/{realm.nodeCount}</span>
+                          <span className="font-semibold text-muted-foreground">{completedInRealm}/{realm.nodeCount}</span>
                         </div>
-                        <Progress value={0} className="h-1.5" />
+                        <Progress value={realmProgressPercent} className="h-1.5" />
+                        {realmXpEarned > 0 && (
+                          <div className="flex items-center gap-1 text-[10px] text-primary">
+                            <Zap className="h-3 w-3" />
+                            <span>{realmXpEarned.toLocaleString()} XP earned</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Boss indicator */}

@@ -24,6 +24,8 @@ import { SkillTreeLanding } from '@/components/skill-tree/skill-tree-landing'
 import { RealmView } from '@/components/skill-tree/realm-view'
 import { NodeView } from '@/components/skill-tree/node-view'
 import { KnowledgeMap } from '@/components/skill-tree/knowledge-map'
+import { GlossaryView } from '@/components/skill-tree/glossary-view'
+import { CertificateView } from '@/components/skill-tree/certificate-view'
 import { ChevronLeft } from 'lucide-react'
 
 const pageVariants = {
@@ -112,6 +114,16 @@ export default function Home() {
                 {selectedSkillView === 'map' && (
                   <motion.div key="st-map" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}>
                     <KnowledgeMap />
+                  </motion.div>
+                )}
+                {selectedSkillView === 'glossary' && (
+                  <motion.div key="st-glossary" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                    <GlossaryView />
+                  </motion.div>
+                )}
+                {selectedSkillView === 'certificate' && (
+                  <motion.div key="st-certificate" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                    <CertificateView />
                   </motion.div>
                 )}
               </AnimatePresence>

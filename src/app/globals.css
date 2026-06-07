@@ -411,3 +411,99 @@
 .dark .boss-node-glow {
   animation: bossPulse 2s ease-in-out infinite;
 }
+
+/* ===================================================
+   Quiz Celebration — Confetti / Sparkle Animation
+   =================================================== */
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-10px) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120px) rotate(720deg) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkleBurst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes xpGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(16,185,129,0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16,185,129,0.4), 0 0 50px rgba(16,185,129,0.15);
+  }
+}
+
+@keyframes celebrateBounce {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-6px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(-3px); }
+}
+
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiFall 2.5s ease-out forwards;
+}
+
+.confetti-piece:nth-child(1) { left: 8%; animation-delay: 0s; background: #10B981; }
+.confetti-piece:nth-child(2) { left: 18%; animation-delay: 0.1s; background: #F59E0B; width: 6px; height: 10px; border-radius: 50%; }
+.confetti-piece:nth-child(3) { left: 28%; animation-delay: 0.2s; background: #3B82F6; }
+.confetti-piece:nth-child(4) { left: 38%; animation-delay: 0.05s; background: #EC4899; width: 10px; height: 6px; }
+.confetti-piece:nth-child(5) { left: 48%; animation-delay: 0.3s; background: #8B5CF6; }
+.confetti-piece:nth-child(6) { left: 58%; animation-delay: 0.15s; background: #06B6D4; width: 6px; height: 12px; border-radius: 50%; }
+.confetti-piece:nth-child(7) { left: 68%; animation-delay: 0.25s; background: #10B981; }
+.confetti-piece:nth-child(8) { left: 78%; animation-delay: 0.1s; background: #F59E0B; width: 10px; height: 6px; }
+.confetti-piece:nth-child(9) { left: 88%; animation-delay: 0.2s; background: #EF4444; }
+.confetti-piece:nth-child(10) { left: 95%; animation-delay: 0.35s; background: #D946EF; width: 6px; height: 10px; border-radius: 50%; }
+
+.confetti-piece:nth-child(11) { left: 5%; animation-delay: 0.4s; background: #F59E0B; width: 5px; height: 5px; border-radius: 50%; }
+.confetti-piece:nth-child(12) { left: 15%; animation-delay: 0.5s; background: #10B981; }
+.confetti-piece:nth-child(13) { left: 35%; animation-delay: 0.45s; background: #EC4899; width: 8px; height: 4px; }
+.confetti-piece:nth-child(14) { left: 55%; animation-delay: 0.55s; background: #8B5CF6; width: 5px; height: 8px; border-radius: 50%; }
+.confetti-piece:nth-child(15) { left: 75%; animation-delay: 0.4s; background: #06B6D4; }
+.confetti-piece:nth-child(16) { left: 92%; animation-delay: 0.6s; background: #F59E0B; width: 4px; height: 8px; }
+
+.sparkle-ring {
+  animation: sparkleBurst 1.5s ease-out forwards;
+}
+
+.celebrate-glow {
+  animation: xpGlow 2s ease-in-out infinite;
+}
+
+.celebrate-bounce {
+  animation: celebrateBounce 1s ease-in-out;
+}

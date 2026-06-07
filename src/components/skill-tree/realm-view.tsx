@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { useAppStore } from '@/lib/store'
 import { getLocalizedText, LanguageSwitcher } from './language-switcher'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -63,21 +62,28 @@ interface RealmInfo {
   badgeTitleTe: string | null
 }
 
+interface NodeProgressInfo {
+  nodeId: number
+  nodeNodeId: string
+  status: 'locked' | 'available' | 'in_progress' | 'completed'
+  xpEarned: number
+  quizBestScore: number
+}
+
+interface RealmProgressInfo {
+  realmId: number
+  realmNumber: number
+  realmTitle: string
+  totalNodes: number
+  completedNodes: number
+  xpEarned: number
+}
+
 interface RealmViewData {
   realm: RealmInfo
   nodes: NodeData[]
   edges: { edgeId: string; fromNodeId: number; toNodeId: number; relationship: string; label: string | null; strength: number }[]
   totalXp: number
-}
-
-function getNodeStatus(index: number, total: number, contentType: string): 'completed' | 'available' | 'locked' {
-  // Phase 1: All nodes are "available" (no progress tracking yet)
-  // First node always available
-  if (index === 0) return 'available'
-  // Boss battle node at end
-  if (contentType === 'Certification') return 'locked'
-  // For now, all are available to preview
-  return 'available'
 }
 
 function getDifficultyColor(difficulty: string) {
@@ -115,7 +121,11 @@ const itemVariants = {
 export function RealmView() {
   const { selectedRealmId, openNode, goBackSkillTree, skillLanguage } = useAppStore()
   const [data, setData] = useState<RealmViewData | null>(null)
+  const [nodeProgressMap, setNodeProgressMap] = useState<Map<number, NodeProgressInfo>>(new Map())
+  const [realmXpEarned, setRealmXpEarned] = useState(0)
+  const [completedCount, setCompletedCount] = useState(0)
 
+  // Fetch realm data
   useEffect(() => {
     if (!selectedRealmId) return
     let cancelled = false
@@ -125,6 +135,52 @@ export function RealmView() {
       .catch(console.error)
     return () => { cancelled = true }
   }, [selectedRealmId])
+
+  // Fetch progress data
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/skill-tree/progress')
+      .then((res) => res.json())
+      .then((d) => {
+        if (cancelled) return
+        // Build a map of node DB id -> progress
+        const map = new Map<number, NodeProgressInfo>()
+        if (d.progress && Array.isArray(d.progress)) {
+          for (const p of d.progress) {
+            map.set(p.nodeId, {
+              nodeId: p.nodeId,
+              nodeNodeId: p.nodeNodeId,
+              status: p.status,
+              xpEarned: p.xpEarned,
+              quizBestScore: p.quizBestScore,
+            })
+          }
+        }
+        setNodeProgressMap(map)
+
+        // Find realm-specific progress
+        if (d.realmProgress && Array.isArray(d.realmProgress) && selectedRealmId) {
+          const rp = d.realmProgress.find((r: RealmProgressInfo) => r.realmId === selectedRealmId)
+          if (rp) {
+            setCompletedCount(rp.completedNodes)
+            setRealmXpEarned(rp.xpEarned)
+          }
+        }
+      })
+      .catch(console.error)
+    return () => { cancelled = true }
+  }, [selectedRealmId])
+
+  // Helper to get node status from progress data
+  const getNodeStatus = (node: NodeData): 'completed' | 'available' | 'in_progress' | 'locked' => {
+    const progress = nodeProgressMap.get(node.id)
+    if (progress) {
+      return progress.status
+    }
+    // If no progress record exists yet, determine based on position
+    // First node in realm should be available
+    return 'locked'
+  }
 
   if (!data) {
     return (
@@ -139,7 +195,7 @@ export function RealmView() {
   const subtitle = getLocalizedText(realm, 'subtitle', skillLanguage)
   const description = getLocalizedText(realm, 'description', skillLanguage)
   const bossName = getLocalizedText(realm, 'bossName', skillLanguage)
-  const completedCount = 0 // Phase 1: no progress yet
+  const progressPercent = nodes.length > 0 ? (completedCount / nodes.length) * 100 : 0
 
   // Group nodes by subRealm for visual organization
   const subRealms = new Map<string, NodeData[]>()
@@ -150,7 +206,7 @@ export function RealmView() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Header */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 hero-grid opacity-30 dark:opacity-50" />
@@ -198,7 +254,7 @@ export function RealmView() {
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Nodes', value: `${completedCount}/${nodes.length}`, icon: <BookOpen className="h-4 w-4" /> },
-              { label: 'XP Available', value: totalXp.toLocaleString(), icon: <Zap className="h-4 w-4" /> },
+              { label: 'XP Earned', value: realmXpEarned > 0 ? realmXpEarned.toLocaleString() : totalXp.toLocaleString(), icon: <Zap className="h-4 w-4" />, subLabel: realmXpEarned > 0 ? `of ${totalXp.toLocaleString()}` : 'XP Available' },
               { label: 'Boss', value: bossName || '—', icon: <Skull className="h-4 w-4" /> },
               { label: 'Badge', value: `${realm.badgeEmoji} ${getLocalizedText(realm, 'badgeTitle', skillLanguage)}`, icon: <Trophy className="h-4 w-4" /> },
             ].map((stat) => (
@@ -207,6 +263,9 @@ export function RealmView() {
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <p className="text-sm font-bold text-foreground truncate">{stat.value}</p>
+                  {'subLabel' in stat && stat.subLabel && (
+                    <p className="text-[10px] text-muted-foreground">{stat.subLabel}</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -218,7 +277,7 @@ export function RealmView() {
               <span className="text-muted-foreground">Realm Progress</span>
               <span className="font-semibold">{completedCount}/{nodes.length} nodes completed</span>
             </div>
-            <Progress value={nodes.length > 0 ? (completedCount / nodes.length) * 100 : 0} className="h-2" />
+            <Progress value={progressPercent} className="h-2" />
           </div>
         </div>
       </section>
@@ -238,10 +297,11 @@ export function RealmView() {
                 background: `linear-gradient(to right, ${realm.color}30, ${realm.color}15)`,
               }} />
 
-              <div className="flex items-center gap-0 overflow-x-auto pb-2 no-scrollbar">
+              <div className="flex items-center gap-0 overflow-x-auto pb-3 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
                 {subRealmNodes.map((node, idx) => {
-                  const status = getNodeStatus(idx, subRealmNodes.length, node.contentType)
+                  const status = getNodeStatus(node)
                   const isBoss = node.contentType === 'Certification'
+                  const progressInfo = nodeProgressMap.get(node.id)
 
                   return (
                     <div key={node.id} className="flex items-center shrink-0">
@@ -254,14 +314,18 @@ export function RealmView() {
                           className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                             status === 'completed'
                               ? 'border-emerald-500 bg-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/20'
+                              : status === 'in_progress'
+                              ? 'border-amber-500 bg-amber-500/15 text-amber-500 group-hover:scale-110'
                               : status === 'available'
                               ? 'border-primary bg-primary/10 text-primary group-hover:scale-110 group-hover:shadow-lg dark:shadow-primary/20'
                               : 'border-muted-foreground/30 bg-muted/30 text-muted-foreground/40'
                           } ${isBoss ? 'h-12 w-12' : ''}`}
-                          style={status === 'available' ? { borderColor: realm.color, backgroundColor: `${realm.color}15`, color: realm.color } : {}}
+                          style={status === 'available' ? { borderColor: realm.color, backgroundColor: `${realm.color}15`, color: realm.color } : status === 'in_progress' ? { borderColor: '#F59E0B', backgroundColor: '#F59E0B15', color: '#F59E0B' } : {}}
                         >
                           {status === 'completed' ? (
                             <CheckCircle2 className="h-5 w-5" />
+                          ) : status === 'in_progress' ? (
+                            isBoss ? <Skull className="h-5 w-5" /> : <BookOpen className="h-4 w-4" />
                           ) : status === 'available' ? (
                             isBoss ? <Skull className="h-5 w-5" /> : <Unlock className="h-4 w-4" />
                           ) : (
@@ -269,10 +333,13 @@ export function RealmView() {
                           )}
                         </div>
                         <span className={`text-[9px] font-medium max-w-[60px] truncate text-center ${
-                          status === 'locked' ? 'text-muted-foreground/40' : 'text-muted-foreground'
+                          status === 'locked' ? 'text-muted-foreground/40' : status === 'completed' ? 'text-emerald-500' : 'text-muted-foreground'
                         }`}>
                           {node.nodeId}
                         </span>
+                        {progressInfo && progressInfo.quizBestScore > 0 && (
+                          <span className="text-[8px] text-muted-foreground">{progressInfo.quizBestScore}%</span>
+                        )}
                       </button>
 
                       {/* Arrow connector */}
@@ -292,10 +359,11 @@ export function RealmView() {
               animate="visible"
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
             >
-              {subRealmNodes.map((node, idx) => {
-                const status = getNodeStatus(idx, subRealmNodes.length, node.contentType)
+              {subRealmNodes.map((node) => {
+                const status = getNodeStatus(node)
                 const isBoss = node.contentType === 'Certification'
                 const nodeTitle = getLocalizedText(node, 'title', skillLanguage)
+                const progressInfo = nodeProgressMap.get(node.id)
 
                 return (
                   <motion.div key={node.id} variants={itemVariants}>
@@ -303,7 +371,11 @@ export function RealmView() {
                       className={`group cursor-pointer overflow-hidden border border-border/60 bg-card/80 backdrop-blur-sm transition-all duration-300 ${
                         status === 'available'
                           ? 'hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-primary/10'
-                          : 'opacity-60'
+                          : status === 'in_progress'
+                          ? 'hover:border-amber-500/40 hover:shadow-lg ring-1 ring-amber-500/20'
+                          : status === 'completed'
+                          ? 'border-emerald-500/30 hover:border-emerald-500/50'
+                          : 'opacity-60 cursor-not-allowed'
                       } ${isBoss ? 'ring-1 ring-red-500/30' : ''}`}
                       onClick={() => status !== 'locked' && openNode(node.nodeId)}
                     >
@@ -322,7 +394,7 @@ export function RealmView() {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
                           <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 h-4 ${getDifficultyColor(node.difficulty)}`}>
                             {node.difficulty}
                           </Badge>
@@ -334,11 +406,39 @@ export function RealmView() {
                           </Badge>
                         </div>
 
-                        {status === 'locked' && (
-                          <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground/50">
-                            <Lock className="h-3 w-3" /> Locked
-                          </div>
-                        )}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          {status === 'completed' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="h-3 w-3" /> Completed
+                              {progressInfo && progressInfo.xpEarned > 0 && (
+                                <span className="text-primary ml-1">+{progressInfo.xpEarned} XP</span>
+                              )}
+                            </span>
+                          )}
+                          {status === 'in_progress' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-500">
+                              <BookOpen className="h-3 w-3" /> In Progress
+                              {progressInfo && progressInfo.quizBestScore > 0 && (
+                                <span className="text-muted-foreground ml-1">Best: {progressInfo.quizBestScore}%</span>
+                              )}
+                            </span>
+                          )}
+                          {status === 'available' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary">
+                              <Unlock className="h-3 w-3" /> Available
+                            </span>
+                          )}
+                          {status === 'locked' && (
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground/50">
+                              <Lock className="h-3 w-3" /> Locked
+                            </span>
+                          )}
+                          {node.status === 'published' && status !== 'completed' && status !== 'locked' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 ml-auto">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Content Ready
+                            </span>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
